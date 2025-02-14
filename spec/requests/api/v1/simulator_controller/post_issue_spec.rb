@@ -41,5 +41,18 @@ RSpec.describe Api::V1::SimulatorController, type: :request do
         expect(response.body).to include("Failed to submit issue to Slack")
       end
     end
+
+    context "when issue is successfully submitted" do
+      before do
+        allow(ENV).to receive(:fetch).with("SLACK_ISSUE_HOOK_URL", nil).and_return("https://circuitverse.valid")
+        stub_request(:post, "https://circuitverse.valid").to_return(status: 200, body: "", headers: {})
+      end
+
+      it "returns a JSON response with a success message and status code 200" do
+        post "/api/v1/simulator/post_issue/", params: { text: "some text", circuit_data: "some data" }
+        expect(response.status).to eq(200)
+        expect(response.parsed_body).to eq({ "success" => true, "message" => "Issue submitted successfully" })
+      end
+    end
   end
 end
